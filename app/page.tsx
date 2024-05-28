@@ -5,9 +5,16 @@ import { Frown } from "lucide-react";
 
 export default async function Page() {
   const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  console.log(user?.id);
+
   const { data: todos } = await supabase
     .from("todos")
     .select()
+    .eq("user_id", user?.id)
     .order("id", { ascending: false });
 
   return (
