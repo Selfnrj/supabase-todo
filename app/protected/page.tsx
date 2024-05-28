@@ -12,9 +12,7 @@ export default async function ProtectedPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect("/login");
-  }
+  const { data: todos } = await supabase.from('todos').select('*')
 
   return (
     <div className="flex-1 w-full flex flex-col gap-20 items-center">
@@ -35,6 +33,7 @@ export default async function ProtectedPage() {
         <Header />
         <main className="flex-1 flex flex-col gap-6">
           <h2 className="font-bold text-4xl mb-4">Next steps</h2>
+          <pre>{JSON.stringify(todos, null, 2)}</pre>
           <FetchDataSteps />
         </main>
       </div>
