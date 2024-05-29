@@ -1,21 +1,21 @@
 ﻿"use client";
 
-import { Pencil, Trash2 } from "lucide-react";
-import { Button } from "./ui/button";
+import { Star } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import deleteNoteAction from "@/actions/deleteNoteAction";
 import { toast } from "sonner";
 import doneNoteAction from "@/actions/doneNoteActions";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import Dropdown from "./Dropdown";
 
 type Props = {
   todo: {
     id: number;
     text: string;
     done: boolean;
+    prio: boolean;
   };
 };
 
@@ -23,12 +23,9 @@ function TodoList({ todo }: Props) {
   const supabase = createClient();
   const router = useRouter();
   const [done, setDone] = useState(todo.done);
+  const [prio, setPrio] = useState(todo.prio);
   const [noteText, setNoteText] = useState(todo.text);
   const [isEditing, setIsEditing] = useState(false);
-
-  const handleEditClick = () => {
-    setIsEditing(!isEditing);
-  };
 
   const handlenNoteChange = async (newText: string) => {
     setNoteText(newText);
@@ -39,12 +36,22 @@ function TodoList({ todo }: Props) {
     router.refresh();
   };
 
+  const handlePriorityClick = async () => {
+    setPrio(!prio);
+    await supabase
+      .from("todos")
+      .update({ prio: !todo.prio })
+      .match({ id: todo.id });
+    router.refresh();
+  };
+
   return (
     <div
       key={todo.id}
       className={cn(
-        `group min-h-[56px] flex justify-between bg-slate-600 text-white rounded mb-4 p-2 items-center`,
-        done && `bg-green-600`
+        `min-h-[56px] border-l-4 border-transparent flex justify-between bg-slate-600 text-white rounded mb-4 items-center`,
+        done && `bg-green-600 border-transparent`,
+        prio && !done && `border-yellow-500`
       )}
     >
       {isEditing ? (
@@ -52,7 +59,7 @@ function TodoList({ todo }: Props) {
           type="text"
           value={noteText}
           className={cn(
-            `flex-1 outline-none text-white items-center p-2 rounded-md bg-slate-500`,
+            `flex-1 outline-none text-white items-center p-2 mr-2 ml-1 rounded-md bg-slate-500`,
             done && `bg-green-500`
           )}
           autoFocus
@@ -65,7 +72,7 @@ function TodoList({ todo }: Props) {
         <>
           <div className="flex items-center flex-1">
             <Checkbox
-              className="ml-3 size-6"
+              className="ml-3 size-5"
               checked={done}
               onCheckedChange={() => {
                 const promise = doneNoteAction(todo.id, todo.done);
@@ -83,29 +90,19 @@ function TodoList({ todo }: Props) {
             />
             <h2 className="mr-8 ml-3">{todo.text}</h2>
           </div>
-          <div className="hidden group-hover:block animate-fadeIn">
-            <Button
-              className="text-slate-300 hover:text-white"
-              variant="link"
-              onClick={handleEditClick}
-            >
-              <Pencil size={20} />
-            </Button>
-            <Button
-              className="text-slate-300 hover:text-white"
-              variant="link"
-              onClick={() => {
-                const promise = deleteNoteAction(todo.id);
-                toast.promise(promise, {
-                  loading: "Deleting note...",
-                  success: "Note deleted",
-                  error: "An error occurred while deleting the note.",
-                });
-              }}
-            >
-              <Trash2 size={20} />
-            </Button>
-          </div>
+          {prio && !done && (
+            <div className="flex text-yellow-500 items-center">
+              <Star className="size-5 mr-2" />
+              <span className="text-xs uppercase">High priority</span>
+            </div>
+          )}
+          <Dropdown
+            todo={todo}
+            handlePriorityClick={handlePriorityClick}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
+            prio={prio}
+          />
         </>
       )}
     </div>

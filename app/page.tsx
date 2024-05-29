@@ -9,8 +9,6 @@ export default async function Page() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  console.log(user?.id);
-
   const { data: todos } = await supabase
     .from("todos")
     .select()

@@ -39,7 +39,7 @@ function AddTodo() {
         type="text"
         name="commentInput"
         placeholder="Add task..."
-        className="flex outline-none text-slate-900 items-center p-2 indent-3 rounded-md flex-1 bg-white"
+        className="flex outline-none text-2xl text-slate-900 items-center px-2 py-4 indent-3 rounded-md flex-1 bg-white"
       />
       <button type="submit" hidden>
         Lägg till
