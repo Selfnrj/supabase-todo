@@ -3,12 +3,13 @@
 import { Star } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import doneNoteAction from "@/actions/doneNoteActions";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Dropdown from "./Dropdown";
+import editNoteAction from "@/actions/editNoteActions";
 
 type Props = {
   todo: {
@@ -20,6 +21,7 @@ type Props = {
 };
 
 function TodoList({ todo }: Props) {
+  const ref = useRef<HTMLFormElement>(null);
   const supabase = createClient();
   const router = useRouter();
   const [done, setDone] = useState(todo.done);
@@ -27,13 +29,20 @@ function TodoList({ todo }: Props) {
   const [noteText, setNoteText] = useState(todo.text);
   const [isEditing, setIsEditing] = useState(false);
 
-  const handlenNoteChange = async (newText: string) => {
-    setNoteText(newText);
-    await supabase
-      .from("todos")
-      .update({ text: newText })
-      .match({ id: todo.id });
-    router.refresh();
+  const handleEditNote = async (formData: FormData): Promise<void> => {
+    const formDataCopy = formData;
+    ref.current?.reset();
+
+    if (!formDataCopy.get("noteEdit")) {
+      throw new Error("noteText is required");
+    }
+
+    try {
+      await editNoteAction(formDataCopy, todo.id);
+      setIsEditing(false);
+    } catch (error) {
+      throw new Error("An error occurred while adding the note.");
+    }
   };
 
   const handlePriorityClick = async () => {
@@ -55,19 +64,36 @@ function TodoList({ todo }: Props) {
       )}
     >
       {isEditing ? (
-        <input
-          type="text"
-          value={noteText}
-          className={cn(
-            `flex-1 outline-none text-white items-center p-2 mr-2 ml-1 rounded-md bg-slate-500`,
-            done && `bg-green-500`
-          )}
-          autoFocus
-          onChange={(e) => handlenNoteChange(e.target.value)}
-          onBlur={() => {
-            setIsEditing(false);
+        <form
+          ref={ref}
+          className="w-full"
+          action={(formData) => {
+            const promise = handleEditNote(formData);
+            toast.promise(promise, {
+              loading: "Editing note...",
+              success: "Note edited successfully",
+              error: "An error occurred while adding the note.",
+            });
           }}
-        />
+        >
+          <input
+            type="text"
+            value={noteText}
+            name="noteEdit"
+            className={cn(
+              `flex-1 outline-none text-white items-center p-2 mr-2 ml-1 rounded-md bg-slate-500 w-full`,
+              done && `bg-green-500`
+            )}
+            autoFocus
+            onChange={(e) => setNoteText(e.target.value)}
+            onBlur={() => {
+              setIsEditing(false);
+            }}
+          />
+          <button type="submit" hidden>
+            Editera
+          </button>
+        </form>
       ) : (
         <>
           <div className="flex items-center flex-1">
