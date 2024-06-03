@@ -9,15 +9,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { Todo } from "@/types/todo";
 
 type Props = {
-  todo: {
-    id: number;
-    text: string;
-    done: boolean;
-    prio: boolean;
-  };
-
   handlePriorityClick: () => void;
   isEditing: boolean;
   setIsEditing: (value: boolean) => void;
@@ -30,7 +24,7 @@ function Dropdown({
   isEditing,
   setIsEditing,
   prio,
-}: Props) {
+}: Props & Todo) {
   const handleEditClick = () => {
     setIsEditing(!isEditing);
   };

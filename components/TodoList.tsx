@@ -10,17 +10,9 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Dropdown from "./Dropdown";
 import editNoteAction from "@/actions/editNoteActions";
+import { Todo } from "@/types/todo";
 
-type Props = {
-  todo: {
-    id: number;
-    text: string;
-    done: boolean;
-    prio: boolean;
-  };
-};
-
-function TodoList({ todo }: Props) {
+function TodoList({ todo }: Todo) {
   const ref = useRef<HTMLFormElement>(null);
   const supabase = createClient();
   const router = useRouter();
